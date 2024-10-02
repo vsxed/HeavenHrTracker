@@ -144,8 +144,7 @@
 	position: absolute;
 	left: -2px;
 	top: -2px;
-	background: linear-gradient(45deg, #408df1, #0b3574, #315272, #64ceff, #097fec, #69b9df,
-			#0043a7, #1d9bb1, #1d53c7, #ffffff91);
+    background: linear-gradient(45deg, #EC37D0, #D92B2B, #FFAA0D, #EC37D0);
 	background-size: 400%;
 	width: calc(100% + 4px);
 	height: calc(100% + 4px);
@@ -155,15 +154,15 @@
 
 @keyframes steam {
 	0% {
-		background-position: 0 0;
+        background-position: 0;
 	}
 
 	50% {
-		background-position: 400% 0;
+        background-position: 400%;
 	}
 
 	100% {
-		background-position: 0 0;
+        background-position: 0;
 	}
 }
 
