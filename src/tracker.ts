@@ -381,9 +381,12 @@ export function formatTimestamp(timestamp: string, settings: SimpleTimeTrackerSe
     return moment(timestamp).format(settings.timestampFormat);
 }
 
-export function formatDuration(totalTime: number, settings: SimpleTimeTrackerSettings): string {
+export function formatDuration(totalTime: number, settings: SimpleTimeTrackerSettings, breakTime: number = 0): string {
     let ret = "";
     let duration = moment.duration(totalTime);
+
+    if (breakTime) duration.subtract(breakTime, "ms");
+
     let hours = settings.fineGrainedDurations ? duration.hours() : Math.floor(duration.asHours());
 
     if (settings.timestampDurations) {
@@ -461,13 +464,18 @@ function removeEntry(entries: Entry[], toRemove: Entry): boolean {
 
 function setCountdownValues(tracker: Tracker, current: HTMLElement, total: HTMLElement, currentDiv: HTMLDivElement, settings: SimpleTimeTrackerSettings): void {
     let running = getRunningEntry(tracker.entries);
+
+    const breakTime = tracker.entries
+        .filter(entry => settings.pauseKeywords.includes(entry.name.toLowerCase()))
+        .reduce((sum, entry) => sum + getDuration(entry), 0);
+    
     if (running && !running.endTime) {
-        current.setText(formatDuration(getDuration(running), settings));
+        current.setText(formatDuration(getDuration(running), settings, breakTime));
         currentDiv.hidden = false;
     } else {
         currentDiv.hidden = true;
     }
-    total.setText(formatDuration(getTotalDuration(tracker.entries), settings));
+    total.setText(formatDuration(getTotalDuration(tracker.entries), settings, breakTime));
 }
 
 function formatEditableTimestamp(timestamp: string, settings: SimpleTimeTrackerSettings): string {
