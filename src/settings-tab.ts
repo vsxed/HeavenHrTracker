@@ -278,7 +278,6 @@ export class SimpleTimeTrackerSettingsTab extends PluginSettingTab {
 				d.addOption("EDITABLE", "EDITABLE");
 				d.addOption("REQUESTED", "REQUESTED");
 
-				console.log("status,", this.plugin.settings.heavenHrTrackingStatus)
 
 				d.setValue(this.plugin.settings.heavenHrTrackingStatus);
 
@@ -308,9 +307,6 @@ export class SimpleTimeTrackerSettingsTab extends PluginSettingTab {
 	private emptyDropdown(elClass: string) {
 		// empty dropdown
 		const el = document.querySelector(elClass).find('select');
-
-		console.log("element?", el)
 		if (el) el.empty();
-
 	}
 }

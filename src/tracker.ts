@@ -87,11 +87,6 @@ export function calculateTimeDifference(startButton: ButtonComponent, endButton:
 	if (startTime && endTime) {
 		const duration = moment.duration(endTime - startTime, "seconds");
 		const str = `${duration.hours()}h ${duration.minutes()}m ${duration.seconds()}s`
-
-		const summary = document.querySelector(".simple-time-tracker-summary");
-		console.log(summary)
-		if (summary) summary.innerHTML = str;
-
 	}
 }
 export async function loadAllTrackers(fileName: string): Promise<{ section: MarkdownSectionInformation, tracker: Tracker }[]> {
@@ -127,7 +122,6 @@ export function displayTracker(tracker: Tracker, element: HTMLElement, getFile: 
     let running = isRunning(tracker);
 
 	const heavenHrApi = new HeavenHrApi(settings, plugin.saveSettings());
-	console.log("tracker > init", settings)
 
 	let punchButtons = element.createEl("div", { cls: "simple-time-tracker-punch" });
 	const startButton = new ButtonComponent(punchButtons).setButtonText("Punch-In").setClass("simple-time-tracker-punch-in-button");
@@ -155,14 +149,7 @@ export function displayTracker(tracker: Tracker, element: HTMLElement, getFile: 
 		calculateTimeDifference(startButton, endButton);
 	});
 
-
-	const summary = element.createEl("div", { cls: "simple-time-tracker-summary" });
-	summary.innerHTML = "Summary"
-
-
-	punchButtons.appendChild(summary);
-
-	if (tracker.meta.startTime && tracker.meta.endTime && summary) {
+	if (tracker.meta.startTime && tracker.meta.endTime) {
 		calculateTimeDifference(startButton, endButton);
 	}
 
@@ -235,10 +222,7 @@ export function displayTracker(tracker: Tracker, element: HTMLElement, getFile: 
 			.setButtonText("Send to Heaven ↗")
 			.setClass("simple-time-tracker-heaven-hr-button")
 			.onClick(() => {
-				console.log(tracker)
-
 				if (!tracker.meta.startTime || !tracker.meta.endTime) {
-					console.log("No start or end time");
 					new Notice("Please make sure to punch in and out before logging to HeavenHR");
 					return;
 				}
@@ -253,15 +237,9 @@ export function displayTracker(tracker: Tracker, element: HTMLElement, getFile: 
 					categories: new Array(settings.heavenHrCategoryId)
 				}
 
-				// TODO: check for pause keywords and add breaks
-				console.log(tracker.entries
-					.filter(entry => settings.pauseKeywords.includes(entry.name.toLowerCase()))
-					.map(entry => getDuration(entry)))
-
 				const breakTime = tracker.entries
 					.filter(entry => settings.pauseKeywords.includes(entry.name.toLowerCase()))
 					.reduce((sum, entry) => sum + getDuration(entry), 0)
-				// .map(entry => getDuration(entry))
 
 				if (breakTime > 0) {
 					// round up to nearest minute in favor of the employer
@@ -269,14 +247,11 @@ export function displayTracker(tracker: Tracker, element: HTMLElement, getFile: 
 					request.breakTimeInMinutes = breakTimeInMinutes.toString();
 				}
 
-				// TODO: create description from entries, but filter out pause keywords
 				const description = tracker.entries
 					.filter(entry => !settings.pauseKeywords.includes(entry.name.toLowerCase()))
 					.map(entry => entry.name).join(", ");
 
 				request.comment = description;
-
-				console.log(request)
 
 				heavenHrApi.refreshToken().then(() => {
 					heavenHrApi.trackTime(request).then(() => {

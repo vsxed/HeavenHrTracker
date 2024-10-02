@@ -38,10 +38,8 @@ class HeavenHrApi implements IHeavenHrApi {
 			})
 				.then(response => response.json())
 				.then(data => {
-					console.log('token: fetch success', data);
 					return data;
 				}).catch(err => {
-					console.log('fetcherr', err);
 					return reject(null);
 				});
 
@@ -59,8 +57,6 @@ class HeavenHrApi implements IHeavenHrApi {
 	}
 
 	public getEmployees(): Promise<any> {
-		console.log("Getting Employees")
-		console.log(this.settings.heavenHrAccessToken)
 
 		return new Promise(async (resolve, reject) => {
 			const data = await fetch("https://heavenhr-api-wrapper.vercel.app/api/employee/list", {
@@ -69,10 +65,8 @@ class HeavenHrApi implements IHeavenHrApi {
 			})
 				.then(response => response.json())
 				.then(data => {
-					console.log('fetch_success', data);
 					return resolve(data);
 				}).catch(err => {
-					console.log('fetcherr', err);
 					return reject(null);
 				});
 		});
@@ -90,18 +84,14 @@ class HeavenHrApi implements IHeavenHrApi {
 			})
 				.then(response => response.json())
 				.then(data => {
-					console.log('fetch_success', data);
 					return resolve(data);
 				}).catch(err => {
-					console.log('fetcherr', err);
 					return reject(null);
 				});
 		});
 	}
 
 	public getProjects(userId: string): Promise<any> {
-		console.log("getProjects")
-
 		return new Promise(async (resolve, reject) => {
 			const data = await fetch(`https://heavenhr-api-wrapper.vercel.app/api/employee/${userId}/projects`, {
 				method: "GET",
@@ -109,18 +99,14 @@ class HeavenHrApi implements IHeavenHrApi {
 			})
 				.then(response => response.json())
 				.then(data => {
-					console.log('fetch_success', data);
 					return resolve(data);
 				}).catch(err => {
-					console.log('fetcherr', err);
 					return reject(null);
 				});
 		});
 	}
 
 	public getCategories(): Promise<any> {
-		console.log("getCategories")
-
 		return new Promise(async (resolve, reject) => {
 			const data = await fetch(`https://heavenhr-api-wrapper.vercel.app/api/company/categories`, {
 				method: "GET",
@@ -128,10 +114,8 @@ class HeavenHrApi implements IHeavenHrApi {
 			})
 				.then(response => response.json())
 				.then(data => {
-					console.log('fetch_success', data);
 					return resolve(data);
 				}).catch(err => {
-					console.log('fetcherr', err);
 					return reject(null);
 				});
 		});
