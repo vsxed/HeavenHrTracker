@@ -1,0 +1,19 @@
+{
+  "timestampFormat": "YY-MM-DD hh:mm:ss",
+  "csvDelimiter": ",",
+  "enablePunchInOut": true,
+  "client_id": "",
+  "client_secret": "",
+  "heavenHrAccessToken": "",
+  "heavenHrUserId": "",
+  "heavenHrProjectId": "",
+  "heavenHrCategoryId": "",
+  "pauseKeywords": [
+    "pause",
+    "break",
+    "lunch",
+    "dinner",
+    "toilet"
+  ],
+  "heavenHrTrackingStatus": "REQUESTED"
+}

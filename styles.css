@@ -29,7 +29,7 @@
 }
 
 .simple-time-tracker-bottom button {
-    margin: 10px 5px 10px 5px;
+	margin: 10px;
 }
 
 .simple-time-tracker-timers,
@@ -83,4 +83,94 @@
 
 .simple-time-tracker-table tr:hover {
     background-color: var(--background-modifier-hover);
+}
+
+/* extension */
+
+.simple-time-tracker-punch {
+	display: flex;
+	justify-content: center;
+	margin-bottom: 1.5em;
+	gap: 1em;
+	align-items: baseline;
+}
+
+
+/* MOd box */
+
+.simple-time-tracker-data-box>* {
+	flex-grow: 0;
+	flex-shrink: 1;
+	display: flex;
+	margin: 0;
+	min-height: 40px;
+	/* justify-content: center; */
+}
+
+.simple-time-tracker-data-box {
+
+	display: flex;
+	justify-content: center;
+	flex-wrap: nowrap;
+	flex-direction: row;
+}
+
+
+.simple-time-tracker-heaven-hr-button {
+	transition: all 0.15s ease-in-out;
+	position: relative;
+	overflow: hidden;
+	background-color: rgb(74, 128, 199) !important;
+
+}
+
+
+.simple-time-tracker-heaven-hr-button:hover {
+	transform: scale(1.1);
+	cursor: pointer;
+	overflow: visible !important;
+	/* text-shadow: -1px -1px 0 rgba(1, 119, 197, 0.637), 1px -1px 0 rgba(1, 119, 197, 0.637), -1px 1px 0 rgba(1, 119, 197, 0.637), 1px 1px 0 rgba(1, 119, 197, 0.637); */
+
+	/* this fixes the overflow:hidden in Chrome/Opera */
+
+}
+
+
+.simple-time-tracker-heaven-hr-button:before,
+.simple-time-tracker-heaven-hr-button:after {
+	content: '';
+	position: absolute;
+	left: -2px;
+	top: -2px;
+	background: linear-gradient(45deg, #408df1, #0b3574, #315272, #64ceff, #097fec, #69b9df,
+			#0043a7, #1d9bb1, #1d53c7, #ffffff91);
+	background-size: 400%;
+	width: calc(100% + 4px);
+	height: calc(100% + 4px);
+	z-index: -1;
+	animation: steam 20s linear infinite;
+}
+
+@keyframes steam {
+	0% {
+		background-position: 0 0;
+	}
+
+	50% {
+		background-position: 400% 0;
+	}
+
+	100% {
+		background-position: 0 0;
+	}
+}
+
+.simple-time-tracker-heaven-hr-button:after {
+	filter: blur(50px);
+}
+
+.simple-time-tracker-heaven-hr-button:before {
+	overflow: hidden;
+	border-radius: var(--button-radius);
+	-webkit-mask-image: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAGXRFWHRTb2Z0d2FyZQBBZG9iZSBJbWFnZVJlYWR5ccllPAAAAA5JREFUeNpiYGBgAAgwAAAEAAGbA+oJAAAAAElFTkSuQmCC);
 }

@@ -1,9 +1,16 @@
-import { moment, MarkdownSectionInformation, ButtonComponent, TextComponent, TFile, MarkdownRenderer, Component, MarkdownRenderChild } from "obsidian";
+import { moment, App, MarkdownSectionInformation, ButtonComponent, TextComponent, TFile, MarkdownRenderer, Notice, Component, MarkdownRenderChild } from "obsidian";
+import { json } from "stream/consumers";
+import HeavenHrApi from "./api/heavenhr";
+import SimpleTimeTrackerPlugin from "./main";
 import { SimpleTimeTrackerSettings } from "./settings";
 import { ConfirmModal } from "./confirm-modal";
 
 export interface Tracker {
     entries: Entry[];
+	meta?: {
+		startTime?: number | undefined;
+		endTime?: number | undefined;
+	};
 }
 
 export interface Entry {
@@ -12,6 +19,19 @@ export interface Entry {
     endTime: string;
     subEntries?: Entry[];
     collapsed?: boolean;
+}
+
+export interface TimeTrackingCreateRequest {
+	projectId?: string;
+	startDate: string;
+	endDate: string;
+	startTime: string;
+	endTime: string;
+	totalTimeInMinutes?: string;
+	breakTimeInMinutes?: string;
+	comment?: string;
+	status?: string;
+	categories?: string[];
 }
 
 export async function saveTracker(tracker: Tracker, fileName: string, section: MarkdownSectionInformation): Promise<void> {
@@ -40,9 +60,40 @@ export function loadTracker(json: string): Tracker {
             console.log(`Failed to parse Tracker from ${json}`);
         }
     }
-    return { entries: [] };
+	return { entries: [], meta: {} };
 }
 
+// create a function which saves the current time into tracker.meta.startTime
+export function addStartTime(tracker: Tracker): void {
+	tracker.meta.startTime = moment().unix()
+}
+
+export function addEndTime(tracker: Tracker): void {
+	tracker.meta.endTime = moment().unix()
+}
+
+export function setTimeAndDisableButton(button: ButtonComponent, time: number): void {
+	button.setButtonText(formatTimestampDefault(time));
+	button.buttonEl.dataset.timestamp = time.toString();
+	button.disabled = true;
+}
+
+// create a function to calculate the time difference between the startButton and endButton
+// and display it in the summary
+export function calculateTimeDifference(startButton: ButtonComponent, endButton: ButtonComponent) {
+	const startTime = parseInt(startButton.buttonEl.dataset.timestamp);
+	const endTime = parseInt(endButton.buttonEl.dataset.timestamp);
+
+	if (startTime && endTime) {
+		const duration = moment.duration(endTime - startTime, "seconds");
+		const str = `${duration.hours()}h ${duration.minutes()}m ${duration.seconds()}s`
+
+		const summary = document.querySelector(".simple-time-tracker-summary");
+		console.log(summary)
+		if (summary) summary.innerHTML = str;
+
+	}
+}
 export async function loadAllTrackers(fileName: string): Promise<{ section: MarkdownSectionInformation, tracker: Tracker }[]> {
     let file = app.vault.getAbstractFileByPath(fileName);
     let content = (await app.vault.cachedRead(file as TFile)).split("\n");
@@ -74,7 +125,69 @@ export function displayTracker(tracker: Tracker, element: HTMLElement, getFile: 
     element.addClass("simple-time-tracker-container");
     // add start/stop controls
     let running = isRunning(tracker);
-    let btn = new ButtonComponent(element)
+
+	const heavenHrApi = new HeavenHrApi(settings, plugin.saveSettings());
+	console.log("tracker > init", settings)
+
+	let punchButtons = element.createEl("div", { cls: "simple-time-tracker-punch" });
+	const startButton = new ButtonComponent(punchButtons).setButtonText("Punch-In").setClass("simple-time-tracker-punch-in-button");
+	const endButton = new ButtonComponent(punchButtons).setButtonText("Punch-Out").setClass("simple-time-tracker-punch-out-button");
+
+	if (tracker.meta.startTime) {
+		setTimeAndDisableButton(startButton, tracker.meta.startTime);
+	}
+
+	if (tracker.meta.endTime) {
+		setTimeAndDisableButton(endButton, tracker.meta.endTime);
+	}
+
+	startButton.onClick(async () => {
+		addStartTime(tracker);
+		setTimeAndDisableButton(startButton, tracker.meta.startTime);
+		await saveTracker(tracker, this.app, getSectionInfo());
+		calculateTimeDifference(startButton, endButton);
+	});
+
+	endButton.onClick(async () => {
+		addEndTime(tracker);
+		setTimeAndDisableButton(endButton, tracker.meta.endTime);
+		await saveTracker(tracker, this.app, getSectionInfo());
+		calculateTimeDifference(startButton, endButton);
+	});
+
+
+	const summary = element.createEl("div", { cls: "simple-time-tracker-summary" });
+	summary.innerHTML = "Summary"
+
+
+	punchButtons.appendChild(summary);
+
+	if (tracker.meta.startTime && tracker.meta.endTime && summary) {
+		calculateTimeDifference(startButton, endButton);
+	}
+
+
+	// new ButtonComponent(punchButtons)
+	// 	.setButtonText("Clear")
+	// 	.onClick(async () => {
+	// 		tracker.meta.startTime = undefined;
+	// 		tracker.meta.endTime = undefined;
+	// 		startButton.setButtonText("Punch-In");
+	// 		endButton.setButtonText("Punch-Out");
+	// 		startButton.disabled = false;
+	// 		endButton.disabled = false;
+	// 		await saveTracker(tracker, this.app, getSectionInfo());
+	// 	});
+
+	let dataBox = element.createEl("div", { cls: "simple-time-tracker-data-box" });
+
+
+	let newSegmentNameBox = new TextComponent(dataBox)
+		.setPlaceholder("What's poppin'?")
+		.setDisabled(running);
+	newSegmentNameBox.inputEl.addClass("simple-time-tracker-txt");
+
+	let btn = new ButtonComponent(dataBox)
         .setClass("clickable-icon")
         .setIcon(`lucide-${running ? "stop" : "play"}-circle`)
         .setTooltip(running ? "End" : "Start")
@@ -86,11 +199,7 @@ export function displayTracker(tracker: Tracker, element: HTMLElement, getFile: 
             }
             await saveTracker(tracker, getFile(), getSectionInfo());
         });
-    btn.buttonEl.addClass("simple-time-tracker-btn");
-    let newSegmentNameBox = new TextComponent(element)
-        .setPlaceholder("Segment name")
-        .setDisabled(running);
-    newSegmentNameBox.inputEl.addClass("simple-time-tracker-txt");
+	btn.buttonEl.addClass("simple-time-tracker-btn");
 
     // add timers
     let timer = element.createDiv({ cls: "simple-time-tracker-timers" });
@@ -122,6 +231,67 @@ export function displayTracker(tracker: Tracker, element: HTMLElement, getFile: 
         new ButtonComponent(buttons)
             .setButtonText("Copy as CSV")
             .onClick(() => navigator.clipboard.writeText(createCsv(tracker, settings)));
+		new ButtonComponent(buttons)
+			.setButtonText("Send to Heaven ↗")
+			.setClass("simple-time-tracker-heaven-hr-button")
+			.onClick(() => {
+				console.log(tracker)
+
+				if (!tracker.meta.startTime || !tracker.meta.endTime) {
+					console.log("No start or end time");
+					new Notice("Please make sure to punch in and out before logging to HeavenHR");
+					return;
+				}
+
+				const request: TimeTrackingCreateRequest = {
+					status: settings.heavenHrTrackingStatus,
+					startDate: moment.unix(tracker.meta.startTime).format("YYYY-MM-DD"),
+					endDate: moment.unix(tracker.meta.endTime).format("YYYY-MM-DD"),
+					startTime: moment.unix(tracker.meta.startTime).format("HH:mm"),
+					endTime: moment.unix(tracker.meta.endTime).format("HH:mm"),
+					projectId: settings.heavenHrProjectId,
+					categories: new Array(settings.heavenHrCategoryId)
+				}
+
+				// TODO: check for pause keywords and add breaks
+				console.log(tracker.entries
+					.filter(entry => settings.pauseKeywords.includes(entry.name.toLowerCase()))
+					.map(entry => getDuration(entry)))
+
+				const breakTime = tracker.entries
+					.filter(entry => settings.pauseKeywords.includes(entry.name.toLowerCase()))
+					.reduce((sum, entry) => sum + getDuration(entry), 0)
+				// .map(entry => getDuration(entry))
+
+				if (breakTime > 0) {
+					// round up to nearest minute in favor of the employer
+					const breakTimeInMinutes = Math.ceil(moment.duration(breakTime, "ms").asMinutes());
+					request.breakTimeInMinutes = breakTimeInMinutes.toString();
+				}
+
+				// TODO: create description from entries, but filter out pause keywords
+				const description = tracker.entries
+					.filter(entry => !settings.pauseKeywords.includes(entry.name.toLowerCase()))
+					.map(entry => entry.name).join(", ");
+
+				request.comment = description;
+
+				console.log(request)
+
+				heavenHrApi.refreshToken().then(() => {
+					heavenHrApi.trackTime(request).then(() => {
+						new Notice("Logged time to HeavenHR");
+					}).catch(err => {
+						console.error(err);
+						new Notice("Error logging time to HeavenHR");
+					})
+				}).catch(err => {
+					console.error(err);
+					new Notice("Error logging time to HeavenHR");
+				})
+
+
+			});
     }
 
 
@@ -306,6 +476,26 @@ function formatEditableTimestamp(timestamp: string, settings: SimpleTimeTrackerS
 
 function unformatEditableTimestamp(formatted: string, settings: SimpleTimeTrackerSettings): string {
     return moment(formatted, settings.editableTimestampFormat).toISOString();
+    
+function formatTimestampDefault(timestamp: number): string {
+	return moment.unix(timestamp).format("HH:mm");
+}
+
+function formatDuration(totalTime: number): string {
+    let duration = moment.duration(totalTime);
+    let ret = "";
+	if (duration.years() > 0)
+		ret += duration.years() + "y ";
+	if (duration.months() > 0)
+		ret += duration.months() + "m ";
+	if (duration.days() > 0)
+		ret += duration.days() + "d ";
+    if (duration.hours() > 0)
+        ret += duration.hours() + "h ";
+    if (duration.minutes() > 0)
+        ret += duration.minutes() + "m ";
+    ret += duration.seconds() + "s";
+    return ret;
 }
 
 function updateLegacyInfo(entries: Entry[]): void {
