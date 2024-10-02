@@ -21,20 +21,17 @@ class HeavenHrApi implements IHeavenHrApi {
 	}
 
 	public refreshToken(): Promise<string> {
-		if (this.settings.client_id.length == 0)
-			throw new Error("No client_id set")
-
-		if (this.settings.client_secret.length == 0)
-			throw new Error("No client_secret set")
-
-		// prepare
-		const encryptedAccessString = enc.Utf8.parse(this.settings.client_id + ":" + this.settings.client_secret);
-		const heavenHrApiKey = enc.Base64.stringify(encryptedAccessString);
-
-		if (this.settings.heavenHrAccessToken.length == 0)
-			throw new Error("No access token set")
-
 		return new Promise(async (resolve, reject) => {
+            if (this.settings.client_id.length == 0)
+                return reject(new Error("No client_id set"));
+    
+            if (this.settings.client_secret.length == 0)
+                return reject(new Error("No client_secret set"));
+    
+            // prepare
+            const encryptedAccessString = enc.Utf8.parse(this.settings.client_id + ":" + this.settings.client_secret);
+            const heavenHrApiKey = enc.Base64.stringify(encryptedAccessString);
+
 			const data = await fetch("https://heavenhr-api-wrapper.vercel.app/api/auth/refresh-token", {
 				method: "GET",
 				headers: { Authorization: `Basic ${heavenHrApiKey}` }

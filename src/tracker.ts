@@ -120,7 +120,7 @@ export async function loadAllTrackers(fileName: string): Promise<{ section: Mark
 
 type GetFile = () => string;
 
-export function displayTracker(tracker: Tracker, element: HTMLElement, getFile: GetFile, getSectionInfo: () => MarkdownSectionInformation, settings: SimpleTimeTrackerSettings, component: MarkdownRenderChild): void {
+export function displayTracker(tracker: Tracker, element: HTMLElement, getFile: GetFile, getSectionInfo: () => MarkdownSectionInformation, settings: SimpleTimeTrackerSettings, component: MarkdownRenderChild, plugin: SimpleTimeTrackerPlugin): void {
 
     element.addClass("simple-time-tracker-container");
     // add start/stop controls
@@ -476,26 +476,10 @@ function formatEditableTimestamp(timestamp: string, settings: SimpleTimeTrackerS
 
 function unformatEditableTimestamp(formatted: string, settings: SimpleTimeTrackerSettings): string {
     return moment(formatted, settings.editableTimestampFormat).toISOString();
+}
     
 function formatTimestampDefault(timestamp: number): string {
 	return moment.unix(timestamp).format("HH:mm");
-}
-
-function formatDuration(totalTime: number): string {
-    let duration = moment.duration(totalTime);
-    let ret = "";
-	if (duration.years() > 0)
-		ret += duration.years() + "y ";
-	if (duration.months() > 0)
-		ret += duration.months() + "m ";
-	if (duration.days() > 0)
-		ret += duration.days() + "d ";
-    if (duration.hours() > 0)
-        ret += duration.hours() + "h ";
-    if (duration.minutes() > 0)
-        ret += duration.minutes() + "m ";
-    ret += duration.seconds() + "s";
-    return ret;
 }
 
 function updateLegacyInfo(entries: Entry[]): void {

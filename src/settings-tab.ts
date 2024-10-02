@@ -1,11 +1,6 @@
 import { App, DropdownComponent, Notice, PluginSettingTab, Setting } from "obsidian";
 import SimpleTimeTrackerPlugin from "./main";
 import { defaultSettings } from "./settings";
-// import cryptojs
-import { enc } from 'crypto-js';
-// import acios es6	
-import axios from 'axios';
-import { curly } from 'node-libcurl';
 import HeavenHrApi from "./api/heavenhr";
 const eventBus = require('js-event-bus')();
 
