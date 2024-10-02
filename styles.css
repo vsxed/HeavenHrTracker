@@ -16,6 +16,7 @@
 
 .simple-time-tracker-txt {
     text-align: center;
+    min-width: 250px;
 }
 
 .simple-time-tracker-btn {
@@ -92,7 +93,8 @@
 	justify-content: center;
 	margin-bottom: 1.5em;
 	gap: 1em;
-	align-items: baseline;
+    margin-right: 15px !important;
+        align-items: center;
 }
 
 

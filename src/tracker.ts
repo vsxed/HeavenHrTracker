@@ -123,7 +123,9 @@ export function displayTracker(tracker: Tracker, element: HTMLElement, getFile: 
 
 	const heavenHrApi = new HeavenHrApi(settings, plugin.saveSettings());
 
-	let punchButtons = element.createEl("div", { cls: "simple-time-tracker-punch" });
+    let dataBox = element.createEl("div", { cls: "simple-time-tracker-data-box" });
+
+	let punchButtons = dataBox.createEl("div", { cls: "simple-time-tracker-punch" });
 	const startButton = new ButtonComponent(punchButtons).setButtonText("Punch-In").setClass("simple-time-tracker-punch-in-button");
 	const endButton = new ButtonComponent(punchButtons).setButtonText("Punch-Out").setClass("simple-time-tracker-punch-out-button");
 
@@ -135,38 +137,28 @@ export function displayTracker(tracker: Tracker, element: HTMLElement, getFile: 
 		setTimeAndDisableButton(endButton, tracker.meta.endTime);
 	}
 
-	startButton.onClick(async () => {
-		addStartTime(tracker);
-		setTimeAndDisableButton(startButton, tracker.meta.startTime);
-		await saveTracker(tracker, this.app, getSectionInfo());
-		calculateTimeDifference(startButton, endButton);
-	});
+	startButton
+        .onClick(async () => {
+            addStartTime(tracker);
+            setTimeAndDisableButton(startButton, tracker.meta.startTime);
+            await saveTracker(tracker, this.app, getSectionInfo());
+            calculateTimeDifference(startButton, endButton);
+        })
+        .setTooltip("Start time");
 
-	endButton.onClick(async () => {
-		addEndTime(tracker);
-		setTimeAndDisableButton(endButton, tracker.meta.endTime);
-		await saveTracker(tracker, this.app, getSectionInfo());
-		calculateTimeDifference(startButton, endButton);
-	});
+	endButton
+        .onClick(async () => {
+            addEndTime(tracker);
+            setTimeAndDisableButton(endButton, tracker.meta.endTime);
+            await saveTracker(tracker, this.app, getSectionInfo());
+            calculateTimeDifference(startButton, endButton);
+        })
+        .setTooltip("End time");
 
 	if (tracker.meta.startTime && tracker.meta.endTime) {
 		calculateTimeDifference(startButton, endButton);
 	}
 
-
-	// new ButtonComponent(punchButtons)
-	// 	.setButtonText("Clear")
-	// 	.onClick(async () => {
-	// 		tracker.meta.startTime = undefined;
-	// 		tracker.meta.endTime = undefined;
-	// 		startButton.setButtonText("Punch-In");
-	// 		endButton.setButtonText("Punch-Out");
-	// 		startButton.disabled = false;
-	// 		endButton.disabled = false;
-	// 		await saveTracker(tracker, this.app, getSectionInfo());
-	// 	});
-
-	let dataBox = element.createEl("div", { cls: "simple-time-tracker-data-box" });
 
 
 	let newSegmentNameBox = new TextComponent(dataBox)
@@ -195,7 +187,6 @@ export function displayTracker(tracker: Tracker, element: HTMLElement, getFile: 
     currentDiv.createEl("span", { text: "Current" });
     let totalDiv = timer.createEl("div", { cls: "simple-time-tracker-timer" });
     let total = totalDiv.createEl("span", { cls: "simple-time-tracker-timer-time", text: "0s" });
-    totalDiv.createEl("span", { text: "Total" });
 
     if (tracker.entries.length > 0) {
         // add table
