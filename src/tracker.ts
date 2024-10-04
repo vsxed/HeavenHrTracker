@@ -436,7 +436,7 @@ function setCountdownValues(tracker: Tracker, current: HTMLElement, total: HTMLE
         .reduce((sum, entry) => sum + getDuration(entry), 0);
     
     if (running && !running.endTime) {
-        current.setText(formatDuration(getDuration(running), settings, breakTime));
+        current.setText(formatDuration(getDuration(running), settings));
         currentDiv.hidden = false;
     } else {
         currentDiv.hidden = true;
