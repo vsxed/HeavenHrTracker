@@ -78,17 +78,6 @@ export function setTimeAndDisableButton(button: ButtonComponent, time: number): 
 	button.disabled = true;
 }
 
-// create a function to calculate the time difference between the startButton and endButton
-// and display it in the summary
-export function calculateTimeDifference(startButton: ButtonComponent, endButton: ButtonComponent) {
-	const startTime = parseInt(startButton.buttonEl.dataset.timestamp);
-	const endTime = parseInt(endButton.buttonEl.dataset.timestamp);
-
-	if (startTime && endTime) {
-		const duration = moment.duration(endTime - startTime, "seconds");
-		const str = `${duration.hours()}h ${duration.minutes()}m ${duration.seconds()}s`
-	}
-}
 export async function loadAllTrackers(fileName: string): Promise<{ section: MarkdownSectionInformation, tracker: Tracker }[]> {
     let file = app.vault.getAbstractFileByPath(fileName);
     let content = (await app.vault.cachedRead(file as TFile)).split("\n");
@@ -141,8 +130,7 @@ export function displayTracker(tracker: Tracker, element: HTMLElement, getFile: 
         .onClick(async () => {
             addStartTime(tracker);
             setTimeAndDisableButton(startButton, tracker.meta.startTime);
-            await saveTracker(tracker, this.app, getSectionInfo());
-            calculateTimeDifference(startButton, endButton);
+            await saveTracker(tracker, getFile(), getSectionInfo());
         })
         .setTooltip("Start time");
 
@@ -150,16 +138,9 @@ export function displayTracker(tracker: Tracker, element: HTMLElement, getFile: 
         .onClick(async () => {
             addEndTime(tracker);
             setTimeAndDisableButton(endButton, tracker.meta.endTime);
-            await saveTracker(tracker, this.app, getSectionInfo());
-            calculateTimeDifference(startButton, endButton);
+            await saveTracker(tracker, getFile(), getSectionInfo());
         })
         .setTooltip("End time");
-
-	if (tracker.meta.startTime && tracker.meta.endTime) {
-		calculateTimeDifference(startButton, endButton);
-	}
-
-
 
 	let newSegmentNameBox = new TextComponent(dataBox)
 		.setPlaceholder("What's poppin'?")
